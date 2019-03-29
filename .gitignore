@@ -5,6 +5,7 @@ logs/
 results/
 temp/
 test/
+samples/coco/DATA
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
