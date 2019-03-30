@@ -1,3 +1,0 @@
-[submodule "samples/coco/cocotools"]
-	path = samples/coco/cocotools
-	url = git@github.com:Ago3/cocotools.git
