@@ -13,7 +13,7 @@ class Image2vec(object):
         self.image_feats = np.array([])
         self.ids = None
         self.img2id = img2id
-        if os.path.exists(IMG_FEATS):
+        if os.path.exists(IMG_FEATS) and has_model=False:
             self._load_with_pickle()
         if not os.path.exists(IMG_FEATS) or has_model:
             vgg_full_model = VGG16(weights='imagenet')
