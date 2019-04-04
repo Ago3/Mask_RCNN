@@ -6,6 +6,9 @@ results/
 temp/
 test/
 samples/coco/DATA
+samples/coco/VisualEmbedding/DATA
+samples/coco/VisualEmbedding/glove
+samples/coco/VisualEmbedding/preprocessing/*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
