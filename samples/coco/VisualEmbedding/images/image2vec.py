@@ -98,6 +98,7 @@ class Image2vec(object):
         print("Computing image features..")
         img_files = os.listdir(IMG_DATA)
         bar = tqdm(range(len(img_files)))
+        n_split = 0
         with open(BBOX_FILE, 'r') as f:
             bjs = json.loads(f.read())
             for img_index in bar:
@@ -107,13 +108,16 @@ class Image2vec(object):
                     #self._compute_features(img)
                 if img_index > 0 and img_index % 500 == 0:
                     print("Saving at index: ", img_index)
-                    with open(IMG_FEATS + "/all.pickle", "wb+") as f:
+                    with open(IMG_FEATS + "/all_{}.pickle".format(n_split), "wb+") as f:
                         pickle.dump(self.image_feats, f)
-                    with open(IMG_FEATS + "/ids.pickle", "wb+") as f:
+                    with open(IMG_FEATS + "/ids_{}.pickle".format(n_split), "wb+") as f:
                         pickle.dump(self.ids, f)
-        with open(IMG_FEATS + "/all.pickle", "wb+") as f:
+                    n_split += 1
+                    self.image_feats = np.array([])
+                    self.ids = None
+        with open(IMG_FEATS + "/all_{}.pickle".format(n_split), "wb+") as f:
             pickle.dump(self.image_feats, f)
-        with open(IMG_FEATS + "/ids.pickle", "wb+") as f:
+        with open(IMG_FEATS + "/ids_{}.pickle".format(n_split), "wb+") as f:
             pickle.dump(self.ids, f)
 
     def _lookup(self, img_id):
