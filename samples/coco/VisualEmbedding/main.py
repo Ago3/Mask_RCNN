@@ -1,6 +1,7 @@
 from images import Image2vec
-from info import BBOX_FILE, TRAIN_FILE, DUMP_DIR
+from info import BBOX_FILE, TRAIN_FILE, DUMP_DIR, IMG_DATA
 import json
+import os
 #from gluoncv import data, utils
 from matplotlib import pyplot as plt
 import ast

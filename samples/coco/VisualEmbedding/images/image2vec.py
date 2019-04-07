@@ -92,7 +92,7 @@ class Image2vec(object):
             else:
                 self.image_feats = np.vstack((self.image_feats, feats))
                 self.ids = np.vstack((self.ids, [str(self.img2id[img_id]) + "_" + str(category)]))
-        return feats[0]
+        return 0 #return feats[0]
 
     def compute_all_feats_and_store(self):
         print("Computing image features..")
