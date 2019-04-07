@@ -1,3 +1,5 @@
 IMG_DATA = '../DATA/train2014'
 IMG_FEATS = '../DATA/vggfeatures'
 BBOX_FILE = '../DATA/annotations/instances_train2014.json'
+TRAIN_FILE = 'DATA/train2014.tsv'
+DUMP_DIR = 'glove/dump'
