@@ -58,7 +58,7 @@ class Image2vec(object):
         #self._save(img_id, feats[0])
         return feats[0]
 
-    def _compute_features_with_bbox(self, img_id, bjs):
+    def _compute_features_with_bbox_not_batch(self, img_id, bjs):
         from keras.preprocessing import image
         from images.deep_learning_models.imagenet_utils import preprocess_input
         img = image.load_img(IMG_DATA + "/" + img_id) #[height x width]
@@ -94,14 +94,57 @@ class Image2vec(object):
                 self.ids = np.vstack((self.ids, [str(self.img2id[img_id]) + "_" + str(category)]))
         return 0 #return feats[0]
 
+    def _compute_features_with_bbox(self, img_id, bjs):
+        from keras.preprocessing import image
+        from images.deep_learning_models.imagenet_utils import preprocess_input
+        img = image.load_img(IMG_DATA + "/" + img_id) #[height x width]
+        img_array = image.img_to_array(img) #[height x width x channels]
+        #plt.imshow(img_array/255)
+        #plt.savefig("fig_before.jpg")
+        anns = [a for a in bjs['annotations'] if a['image_id'] == self.img2id[img_id]]
+        images = np.array([])
+        ids = []
+        for a in anns:
+            bbox = [round(c) for c in a['bbox']]
+            category = self.catid2wordid[a['category_id']]
+            #img_cropped = tf.image.crop_to_bounding_box(img_array, bbox[1], bbox[0], bbox[3], bbox[2])
+            img_cropped = img_array[bbox[1]:(bbox[1] + bbox[3] + 1), bbox[0]:(bbox[0] + bbox[2] + 1), :]
+            height, width = img_cropped.shape[:-1]
+            img_cropped = np.expand_dims(img_cropped, axis=0) #[1 x height x width x channels]
+            #Subtract the mean RGB channels of the imagenet dataset
+            #(since the model has been trained on a different dataset)
+            #img_cropped = preprocess_input(img_cropped) #[1 x height x width x channels]
+            image_ph = tf.placeholder(tf.float32, name="image_ph", shape=[1, None, None, 3])
+            feed_dict = {image_ph: img_cropped}
+            if height > 224 or width > 224:
+                img_cropped = tf.compat.v1.image.resize_bilinear(image_ph, [min(224, height), min(224, width)])
+            img_cropped = tf.compat.v1.image.resize_image_with_crop_or_pad(img_cropped, *[224, 224]).eval(feed_dict, session=self.session)
+            if images.ndim == 1:
+                images = img_cropped
+                ids = np.array(str(self.img2id[img_id]) + "_" + str(category))
+            else:
+                images = np.vstack((images, img_cropped))
+                ids = np.vstack((ids, [str(self.img2id[img_id]) + "_" + str(category)]))
+        feats = self.vgg.predict(images) #[1 x 7 x 7 x 512]
+        feats = np.reshape(feats, [-1, 49, 512]) #[1 x 49 x 512]
+        if self.image_feats.ndim == 1:
+            self.image_feats = np.array(feats)
+            self.ids = np.array(ids)
+        else:
+            self.image_feats = np.vstack((self.image_feats, feats))
+            self.ids = np.vstack((self.ids, ids))
+        return 0 #return feats[0]
+
     def compute_all_feats_and_store(self):
         print("Computing image features..")
         img_files = os.listdir(IMG_DATA)
         bar = tqdm(range(len(img_files)))
-        n_split = 0
+        n_split = 1
         with open(BBOX_FILE, 'r') as f:
             bjs = json.loads(f.read())
             for img_index in bar:
+                if img_index <= 500 * n_split:
+                    continue
                 img = img_files[img_index]
                 if not (img.startswith(".") or os.path.isdir(img)) and img.endswith("jpg"):
                     self.get_features(img, bjs)
