@@ -105,6 +105,12 @@ class Image2vec(object):
                 if not (img.startswith(".") or os.path.isdir(img)) and img.endswith("jpg"):
                     self.get_features(img, bjs)
                     #self._compute_features(img)
+                if img_index > 0 and img_index % 500 == 0:
+                    print("Saving at index: ", img_index)
+                    with open(IMG_FEATS + "/all.pickle", "wb+") as f:
+                        pickle.dump(self.image_feats, f)
+                    with open(IMG_FEATS + "/ids.pickle", "wb+") as f:
+                        pickle.dump(self.ids, f)
         with open(IMG_FEATS + "/all.pickle", "wb+") as f:
             pickle.dump(self.image_feats, f)
         with open(IMG_FEATS + "/ids.pickle", "wb+") as f:
