@@ -27,6 +27,7 @@ class Image2vec(object):
             vgg_full_model = VGG16(weights='imagenet')
             #We don't need the prediction layer
             self.vgg = Model(input=vgg_full_model.input, output=vgg_full_model.get_layer('block5_pool').output)
+            self.session = tf.Session()
         if not os.path.exists(IMG_FEATS):
             os.makedirs(IMG_FEATS)
 
@@ -79,7 +80,7 @@ class Image2vec(object):
             feed_dict = {image_ph: img_cropped}
             if height > 224 or width > 224:
                 img_cropped = tf.compat.v1.image.resize_bilinear(image_ph, [min(224, height), min(224, width)])
-            img_cropped = tf.compat.v1.image.resize_image_with_crop_or_pad(img_cropped, *[224, 224]).eval(feed_dict, session=tf.Session())
+            img_cropped = tf.compat.v1.image.resize_image_with_crop_or_pad(img_cropped, *[224, 224]).eval(feed_dict, session=self.session)
             #img_cropped = tf.keras.backend.resize_images(img_cropped, math.ceil(224 / int(height)), math.ceil(round(224 / int(width))), "channels_last", interpolation='nearest')
             #plt.imshow(img_cropped[0]/255)
             #plt.savefig("fig_after.jpg")
