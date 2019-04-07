@@ -100,8 +100,6 @@ class Image2vec(object):
         with open(BBOX_FILE, 'r') as f:
             bjs = json.loads(f.read())
             for img_index in bar:
-                if img_index > 1:
-                    break
                 img = img_files[img_index]
                 if not (img.startswith(".") or os.path.isdir(img)) and img.endswith("jpg"):
                     self.get_features(img, bjs)
