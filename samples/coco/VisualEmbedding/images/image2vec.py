@@ -125,14 +125,15 @@ class Image2vec(object):
             else:
                 images = np.vstack((images, img_cropped))
                 ids = np.vstack((ids, [str(self.img2id[img_id]) + "_" + str(category)]))
-        feats = self.vgg.predict(images) #[1 x 7 x 7 x 512]
-        feats = np.reshape(feats, [-1, 49, 512]) #[1 x 49 x 512]
-        if self.image_feats.ndim == 1:
-            self.image_feats = np.array(feats)
-            self.ids = np.array(ids)
-        else:
-            self.image_feats = np.vstack((self.image_feats, feats))
-            self.ids = np.vstack((self.ids, ids))
+        if images.ndim > 1:
+            feats = self.vgg.predict(images) #[1 x 7 x 7 x 512]
+            feats = np.reshape(feats, [-1, 49, 512]) #[1 x 49 x 512]
+            if self.image_feats.ndim == 1:
+                self.image_feats = np.array(feats)
+                self.ids = np.array(ids)
+            else:
+                self.image_feats = np.vstack((self.image_feats, feats))
+                self.ids = np.vstack((self.ids, ids))
         return 0 #return feats[0]
 
     def compute_all_feats_and_store(self):
