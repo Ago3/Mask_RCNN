@@ -32,7 +32,7 @@ def generate_batch_coco(input_file, object_categories, batch_size, img2vec=None)
                         last_batch = True
                     else:
                         #line format: s = "1 2 3 4 [1,2,3,4] [2,3,4,5]"
-                        img_in, img_out, w_in, w_out, bbox_in, bbox_out = [ast.literal_eval(e) for e in line.split()]
+                        img_in, img_out, w_in, w_out, bbox_in, bbox_out = [ast.literal_eval(e) for e in line.split('\t')]
                         I_in_ids += [img_in]
                         I_out_ids += [img_out]
                         W_in += [w_in]
