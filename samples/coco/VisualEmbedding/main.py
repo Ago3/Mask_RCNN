@@ -1,7 +1,7 @@
 from images import Image2vec
 from info import BBOX_FILE, TRAIN_FILE, DUMP_DIR
 import json
-from gluoncv import data, utils
+#from gluoncv import data, utils
 from matplotlib import pyplot as plt
 import ast
 import pickle
