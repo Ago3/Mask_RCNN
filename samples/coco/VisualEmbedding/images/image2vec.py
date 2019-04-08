@@ -119,12 +119,13 @@ class Image2vec(object):
             if height > 224 or width > 224:
                 img_cropped = tf.compat.v1.image.resize_bilinear(image_ph, [min(224, height), min(224, width)])
             img_cropped = tf.compat.v1.image.resize_image_with_crop_or_pad(img_cropped, *[224, 224]).eval(feed_dict, session=self.session)
+            id_name = str(self.img2id[img_id]) + "_" + str(category) + "_{}_{}_{}_{}".format(*bbox)
             if images.ndim == 1:
                 images = img_cropped
-                ids = np.array(str(self.img2id[img_id]) + "_" + str(category))
+                ids = np.array(id_name)
             else:
                 images = np.vstack((images, img_cropped))
-                ids = np.vstack((ids, [str(self.img2id[img_id]) + "_" + str(category)]))
+                ids = np.vstack((ids, [id_name]))
         if images.ndim > 1:
             feats = self.vgg.predict(images) #[1 x 7 x 7 x 512]
             feats = np.reshape(feats, [-1, 49, 512]) #[1 x 49 x 512]
@@ -140,15 +141,13 @@ class Image2vec(object):
         print("Computing image features..")
         img_files = os.listdir(IMG_DATA)
         bar = tqdm(range(len(img_files)))
-        n_split = 1
+        n_split = 0
         with open(BBOX_FILE, 'r') as f:
             bjs = json.loads(f.read())
             for img_index in bar:
-                if img_index <= 500 * n_split:
-                    continue
                 img = img_files[img_index]
                 if not (img.startswith(".") or os.path.isdir(img)) and img.endswith("jpg"):
-                    self.get_features(img, bjs)
+                    self._compute_features_with_bbox(img, bjs)
                     #self._compute_features(img)
                 if img_index > 0 and img_index % 500 == 0:
                     print("Saving at index: ", img_index)

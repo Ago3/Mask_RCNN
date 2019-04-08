@@ -35,7 +35,7 @@ def main():
     #for i in range(2):
     #    print(train_dataset[i][0])
     first_run()
-    #test_first_run()
+    test_first_run()
 
 
 def first_run():
