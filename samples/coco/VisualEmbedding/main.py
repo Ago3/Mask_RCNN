@@ -34,8 +34,25 @@ def main():
     # plt.show()
     #for i in range(2):
     #    print(train_dataset[i][0])
+    
+    # img_files = os.listdir(IMG_DATA)
+    # img2id = dict()  # name image -> id image
+    # with open(BBOX_FILE, 'r') as bfile:
+    #     bjs = json.loads(bfile.read())
+    #     img2id = {image['file_name']: image['id'] for image in bjs['images']}
+    # with open(BBOX_FILE, 'r') as f:
+    #     bjs = json.loads(f.read())
+    #     avg = 0
+    #     for idx, img in enumerate(img_files):
+    #         if idx % 500 == 0 and idx > 0:
+    #             print("Average: ", avg / 500)
+    #             avg = 0
+    #         anns = [a for a in bjs['annotations'] if a['image_id'] == img2id[img]]
+    #         #print("Annotations: ", len(anns))
+    #         avg += len(anns)
+    
     first_run()
-    test_first_run()
+    #test_first_run()
 
 
 def first_run():

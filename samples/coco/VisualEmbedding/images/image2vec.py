@@ -10,6 +10,7 @@ import json
 import tensorflow as tf
 import math
 from matplotlib import pyplot as plt
+from time import time
 #tf.enable_eager_execution() # Enable this if you want to visualize images. Remember to remove VGG
 
 
@@ -58,7 +59,7 @@ class Image2vec(object):
         #self._save(img_id, feats[0])
         return feats[0]
 
-    def _compute_features_with_bbox_not_batch(self, img_id, bjs):
+    def _compute_features_with_bbox(self, img_id, bjs): #_not_batch
         from keras.preprocessing import image
         from images.deep_learning_models.imagenet_utils import preprocess_input
         img = image.load_img(IMG_DATA + "/" + img_id) #[height x width]
@@ -84,17 +85,18 @@ class Image2vec(object):
             #img_cropped = tf.keras.backend.resize_images(img_cropped, math.ceil(224 / int(height)), math.ceil(round(224 / int(width))), "channels_last", interpolation='nearest')
             #plt.imshow(img_cropped[0]/255)
             #plt.savefig("fig_after.jpg")
+            id_name = str(self.img2id[img_id]) + "_" + str(category) + "_{}_{}_{}_{}".format(*bbox)
             feats = self.vgg.predict(img_cropped) #[1 x 7 x 7 x 512]
             feats = np.reshape(feats, [1, 49, 512]) #[1 x 49 x 512]
             if self.image_feats.ndim == 1:
                 self.image_feats = np.array(feats)
-                self.ids = np.array(str(self.img2id[img_id]) + "_" + str(category))
+                self.ids = np.array(id_name)
             else:
                 self.image_feats = np.vstack((self.image_feats, feats))
-                self.ids = np.vstack((self.ids, [str(self.img2id[img_id]) + "_" + str(category)]))
+                self.ids = np.vstack((self.ids, [id_name]))
         return 0 #return feats[0]
 
-    def _compute_features_with_bbox(self, img_id, bjs):
+    def _compute_features_with_bbox_batch(self, img_id, bjs):
         from keras.preprocessing import image
         from images.deep_learning_models.imagenet_utils import preprocess_input
         img = image.load_img(IMG_DATA + "/" + img_id) #[height x width]
@@ -102,6 +104,7 @@ class Image2vec(object):
         #plt.imshow(img_array/255)
         #plt.savefig("fig_before.jpg")
         anns = [a for a in bjs['annotations'] if a['image_id'] == self.img2id[img_id]]
+        print("Annotations: ", len(anns))
         images = np.array([])
         ids = []
         for a in anns:
@@ -127,7 +130,11 @@ class Image2vec(object):
                 images = np.vstack((images, img_cropped))
                 ids = np.vstack((ids, [id_name]))
         if images.ndim > 1:
+            print("Ready to call vgg..")
+            start = time()
             feats = self.vgg.predict(images) #[1 x 7 x 7 x 512]
+            print(time() - start)
+            print("Saving")
             feats = np.reshape(feats, [-1, 49, 512]) #[1 x 49 x 512]
             if self.image_feats.ndim == 1:
                 self.image_feats = np.array(feats)
@@ -135,22 +142,28 @@ class Image2vec(object):
             else:
                 self.image_feats = np.vstack((self.image_feats, feats))
                 self.ids = np.vstack((self.ids, ids))
+        print("Done!")
+        input()
         return 0 #return feats[0]
 
     def compute_all_feats_and_store(self):
         print("Computing image features..")
         img_files = os.listdir(IMG_DATA)
         bar = tqdm(range(len(img_files)))
-        n_split = 0
+        n_split = 1
+        avg_time = 0
         with open(BBOX_FILE, 'r') as f:
             bjs = json.loads(f.read())
             for img_index in bar:
+                if img_index <= 500:
+                    continue
+                start = time()
                 img = img_files[img_index]
                 if not (img.startswith(".") or os.path.isdir(img)) and img.endswith("jpg"):
                     self._compute_features_with_bbox(img, bjs)
                     #self._compute_features(img)
                 if img_index > 0 and img_index % 500 == 0:
-                    print("Saving at index: ", img_index)
+                    print("Saving at index: ", img_index, " Avg time: ", avg_time/img_index)
                     with open(IMG_FEATS + "/all_{}.pickle".format(n_split), "wb+") as f:
                         pickle.dump(self.image_feats, f)
                     with open(IMG_FEATS + "/ids_{}.pickle".format(n_split), "wb+") as f:
@@ -158,6 +171,7 @@ class Image2vec(object):
                     n_split += 1
                     self.image_feats = np.array([])
                     self.ids = None
+                avg_time += time() - start
         with open(IMG_FEATS + "/all_{}.pickle".format(n_split), "wb+") as f:
             pickle.dump(self.image_feats, f)
         with open(IMG_FEATS + "/ids_{}.pickle".format(n_split), "wb+") as f:
